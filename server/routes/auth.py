@@ -16,18 +16,17 @@ ACCESS_TOKEN_EXPIRES_IN = settings.ACCESS_TOKEN_EXPIRES_IN
 REFRESH_TOKEN_EXPIRES_IN = settings.REFRESH_TOKEN_EXPIRES_IN
 
 
-@router.post('/register', status_code=status.HTTP_201_CREATED)
+@router.post('/register')
 async def create_user(payload: CreateUserSchema):
     # Check if user already exist
     user = await user_collection.find_one({'email': payload.email.lower()})
-    print(user_collection)
     if user:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT,
-                            detail='Account already exist')
+        return ErrorResponseModel(
+            "User already exist", status.HTTP_400_BAD_REQUEST, "User already exist")
     # Compare password and passwordConfirm
     if payload.password != payload.passwordConfirm:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='Passwords do not match')
+        return ErrorResponseModel(
+            "Password and Password Confirm don't match", 400, "Password and Password Confirm don't match")
     #  Hash the password
     payload.password = utils.hash_password(payload.password)
     del payload.passwordConfirm
@@ -40,7 +39,6 @@ async def create_user(payload: CreateUserSchema):
     new_user = userResponseEntity(await
                                   user_collection.find_one({'_id': result.inserted_id}))
     return ResponseModel(new_user, 'User created successfully')
-
 
 @router.post('/login')
 async def login(payload: LoginUserSchema, response: Response, Authorize: AuthJWT = Depends()):

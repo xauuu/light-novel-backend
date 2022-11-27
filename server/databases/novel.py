@@ -100,3 +100,19 @@ async def get_random_novel(number: int) -> dict:
     async for novel in novel_collection.aggregate([{"$sample": {"size": number}}]):
         novels.append(novel_helper(novel))
     return novels
+
+# get my novel
+
+async def get_my_novel(id: str) -> dict:
+    novels = []
+    async for novel in novel_collection.find({"account_id": id}):
+        novels.append(novel_helper(novel))
+    return novels
+
+# get novel by genre
+
+async def get_novel_by_genre(genre: str) -> dict:
+    novels = []
+    async for novel in novel_collection.find({"genres": genre}):
+        novels.append(novel_helper(novel))
+    return novels

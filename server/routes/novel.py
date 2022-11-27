@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 
 from server.databases.novel import *
@@ -9,15 +9,17 @@ from server.models.novel import (
 )
 
 from server.config.response import ResponseModel, ErrorResponseModel
+from server import oauth2
 
 router = APIRouter()
 
 
-@router.post("/", response_description="Novel data added into the database")
-async def add_novel_data(novel: NovelSchema = Body(...)):
+@router.post("/create", response_description="Novel data added into the database")
+async def add_novel_data(novel: NovelSchema = Body(...), account_id: str = Depends(oauth2.require_user)):
     novel = jsonable_encoder(novel)
-    new_novel = await add_novel(novel)
-    return ResponseModel(new_novel, "Novel added successfully.")
+    novel['account_id'] = account_id
+    # new_novel = await add_novel(novel)
+    return ResponseModel(novel, "Novel added successfully.")
 
 
 @router.get("/", response_description="Novels retrieved")
@@ -28,7 +30,7 @@ async def get_novels():
     return ResponseModel(novels, "Empty list returned")
 
 
-@router.get("/{id}", response_description="Novel data retrieved")
+@router.get("/detail/{id}", response_description="Novel data retrieved")
 async def get_novel_data(id):
     novel = await retrieve_novel(id)
     if novel:
@@ -71,3 +73,12 @@ async def get_top_novels(number: int):
     if novels:
         return ResponseModel(novels, "Novels data retrieved successfully")
     return ResponseModel(novels, "Empty list returned")
+
+# get my novel list
+@router.get("/my", response_description="My novels retrieved")
+async def get_my_novels(user_id: str = Depends(oauth2.require_user)):
+    novels = await get_my_novel(user_id)
+    if novels:
+        return ResponseModel(novels, "Novels data retrieved successfully")
+    return ResponseModel(novels, "Empty list returned")
+

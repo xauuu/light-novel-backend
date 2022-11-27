@@ -7,10 +7,9 @@ from server.routes.auth import router as AuthRouter
 from server.routes.summarize import router as SummarizeRouter
 from server.config.config import settings
 
-origins = [
-    settings.CLIENT_ORIGIN,
-]
 app = FastAPI()
+
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
