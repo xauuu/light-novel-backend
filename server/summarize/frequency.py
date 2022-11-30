@@ -7,15 +7,16 @@ import heapq
 def summarize(text, top_n):
     article_text = re.sub(r'\[[0-9]*\]', ' ', text) # loại bỏ các số trong ngoặc vuông
     article_text = re.sub(r'\s+', ' ', article_text) # loại bỏ khoảng trắng thừa
+    article_text = re.sub(r'<[^>]*>', ' ', article_text) # loại bỏ các thẻ HTML
     formatted_article_text = re.sub('[^a-zA-Z]', ' ', article_text ) # loại bỏ các ký tự đặc biệt
     formatted_article_text = re.sub(r'\s+', ' ', formatted_article_text) # loại bỏ khoảng trắng thừa
     
     sentence_list = sent_tokenize(article_text) # tách câu
-    stopwords = stopwords.words('english') # tạo stopwords
+    stopword = stopwords.words('english') # tạo stopwords
 
     word_frequencies = {} # tạo dictionary chứa các từ và tần suất xuất hiện
-    for word in nltk.word_tokenize(formatted_article_text): # duyệt qua các từ trong văn bản
-        if word not in stopwords: # nếu từ đó không nằm trong stopwords
+    for word in nltk.word_tokenize(formatted_article_text.lower()): # duyệt qua các từ trong văn bản
+        if word not in stopword: # nếu từ đó không nằm trong stopwords
             if word not in word_frequencies.keys(): # nếu từ đó chưa có trong dictionary
                 word_frequencies[word] = 1 # thêm từ đó vào dictionary với tần suất là 1
             else: # nếu từ đó đã có trong dictionary

@@ -8,10 +8,10 @@ import re
 
 def clean_text(text):
     sentences =[] # tạo một list rỗng
-    
     sentences = sent_tokenize(text) # tách câu
-    for sentence in sentences: 
-        sentence.replace("[^a-zA-Z0-9]"," ") # loại bỏ các ký tự đặc biệt
+    for sentence in sentences: # duyệt từng câu trong text
+        re.sub(r'[^a-zA-Z0-9]','',sentence) # loại bỏ các ký tự đặc biệt
+        re.sub(r'\s+',' ',sentence) # loại bỏ các khoảng trắng thừa
 
     return sentences # trả về list các câu
 
