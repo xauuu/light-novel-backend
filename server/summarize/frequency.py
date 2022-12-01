@@ -3,8 +3,22 @@ from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
 import re
 import heapq
+import bs4 as bs
+import urllib.request
 
-def summarize(text, top_n):
+def get_text(url):
+    scraped_data = urllib.request.urlopen(url)
+    article = scraped_data.read()
+    parsed_article = bs.BeautifulSoup(article,'lxml')
+    paragraphs = parsed_article.find_all('p')
+    article_text = ""
+    for p in paragraphs:
+        article_text += p.text
+    return article_text
+
+def summarize(text, type, url, top_n):
+    if type == "url":
+        text = get_text(url)
     article_text = re.sub(r'\[[0-9]*\]', ' ', text) # loại bỏ các số trong ngoặc vuông
     article_text = re.sub(r'\s+', ' ', article_text) # loại bỏ khoảng trắng thừa
     article_text = re.sub(r'<[^>]*>', ' ', article_text) # loại bỏ các thẻ HTML

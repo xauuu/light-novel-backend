@@ -11,6 +11,8 @@ class SummarySchema(BaseModel):
     text: str = Field(...)
     method: str = Field(...)
     sentences: int = Field(...)
+    type: str = Field(...)
+    url: str = Field(None)
 
 @router.post("/", response_description="Summarize text")
 async def summarize(request: SummarySchema = Body(...)):
@@ -18,7 +20,7 @@ async def summarize(request: SummarySchema = Body(...)):
         if request.method == "textrank":
             summary = textrank_summary(request.text, request.sentences)
         elif request.method == "frequency":
-            summary = frequency_summary(request.text, request.sentences)
+            summary = frequency_summary(request.text, request.type, request.url, request.sentences)
         else:
             return ErrorResponseModel("An error occurred", 500, "Invalid method")
         return ResponseModel(summary, "Summary generated successfully")
