@@ -2,6 +2,7 @@ from bson.objectid import ObjectId
 from server import connect
 
 chapter_collection = connect.chapter_collection
+novel_collection = connect.novel_collection
 
 
 def chapter_helper(chapter) -> dict:
@@ -31,6 +32,9 @@ async def retrieve_chapters():
 
 # Add a new chapter into to the database
 async def add_chapter(chapter_data: dict) -> dict:
+    chapter_number = await chapter_collection.count_documents({"novel_id": chapter_data["novel_id"]}) + 1
+    chapter_data["chapter_number"] = chapter_number
+    await novel_collection.update_one({"_id": ObjectId(chapter_data["novel_id"])}, {"$set": {"chapter": chapter_number}})
     chapter = await chapter_collection.insert_one(chapter_data)
     new_chapter = await chapter_collection.find_one({"_id": chapter.inserted_id})
     return chapter_helper(new_chapter)
@@ -84,6 +88,6 @@ async def delete_chapter(id: str):
 
 async def get_chapter_by_novel_id(novel_id: str):
     chapters = []
-    async for chapter in chapter_collection.find({"novel_id": novel_id}):
+    async for chapter in chapter_collection.find({"novel_id": novel_id}).sort("chapter_number", -1):
         chapters.append(chapter_helper(chapter))
     return chapters

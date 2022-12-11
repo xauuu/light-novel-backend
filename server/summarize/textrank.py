@@ -5,13 +5,27 @@ from nltk.tokenize import sent_tokenize
 import numpy as np
 import networkx as nx
 import re
+import urllib.request
+from bs4 import BeautifulSoup
+
+def get_text(url):
+    scraped_data = urllib.request.urlopen(url)
+    article = scraped_data.read()
+    parsed_article = BeautifulSoup(article,'lxml')
+    paragraphs = parsed_article.find_all('p')
+    article_text = ""
+    for p in paragraphs:
+        article_text += p.text
+    return article_text
 
 def clean_text(text):
     sentences =[] # tạo một list rỗng
-    sentences = sent_tokenize(text) # tách câu
-    for sentence in sentences: # duyệt từng câu trong text
-        re.sub(r'[^a-zA-Z0-9]','',sentence) # loại bỏ các ký tự đặc biệt
-        re.sub(r'\s+',' ',sentence) # loại bỏ các khoảng trắng thừa
+    for sentence in sent_tokenize(text): # duyệt từng câu trong text
+        sentence = re.sub(r'<[^>]*>', ' ', sentence) # loại bỏ các thẻ html
+        sentence = re.sub(r'\[[0-9]*\]', ' ', sentence) # loại bỏ các số trong ngoặc vuông
+        sentence = sentence.replace("[^a-zA-Z0-9]"," ") # loại bỏ các ký tự đặc biệt
+        sentence = re.sub(r'\s+',' ',sentence) # loại bỏ các khoảng trắng thừa
+        sentences.append(sentence) # thêm câu đã được xử lý vào list
 
     return sentences # trả về list các câu
 
@@ -50,11 +64,12 @@ def build_similarity_matrix(sentences,stop_words): # tạo ma trận độ tươ
                 
     return similarity_matrix # trả về ma trận độ tương tự
 
-def generate_summary(text,top_n):
+def generate_summary(text, type, url, top_n):
     
     stop_words = stopwords.words('english') # tạo một list stopwords
     summarize_text = [] # tạo một list rỗng
-    
+    if type == 'url':
+        text = get_text(url)
     sentences = clean_text(text) # tách câu
     
     sentence_similarity_matrix = build_similarity_matrix(sentences,stop_words) # tạo ma trận độ tương tự

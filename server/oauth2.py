@@ -61,3 +61,35 @@ async def require_user(Authorize: AuthJWT = Depends()):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Token is invalid or has expired')
     return user_id
+
+async def require_admin(Authorize: AuthJWT = Depends()):
+    try:
+        Authorize.jwt_required()
+        user_id = Authorize.get_jwt_subject()
+        admin = await user_collection.find_one({'_id': ObjectId(str(user_id))})
+
+        if not admin:
+            raise UserNotFound('User no longer exist')
+
+        if not admin["verified"]:
+            raise NotVerified('You are not verified')
+
+        if admin["role"] != 'admin':
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail='You are not admin')
+
+    except Exception as e:
+        error = e.__class__.__name__
+        print(error)
+        if error == 'MissingTokenError':
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail='You are not logged in')
+        if error == 'UserNotFound':
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail='User no longer exist')
+        if error == 'NotVerified':
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail='Please verify your account')
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail='Token is invalid or has expired')
+    return user_id

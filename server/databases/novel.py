@@ -13,12 +13,12 @@ def novel_helper(novel) -> dict:
         "genres": novel["genres"],
         "image_url": novel["image_url"],
         "banner_url": novel["banner_url"],
-        "chapter": novel["chapter"],
+        "chapters": novel["chapter"],
         "views": novel["views"],
-        "chapter": novel["chapter"],
         "tags": novel["tags"],
         "rating": novel["rating"],
         "year": novel["year"],
+        "status": novel["status"],
         "created_at": novel["created_at"],
         "updated_at": novel["updated_at"],
         "created_by": novel["created_by"],
@@ -88,16 +88,15 @@ async def delete_novel(id: str):
 
 async def get_top_novel(number: int) -> dict:
     novels = []
-    async for novel in novel_collection.find().sort("views", -1).limit(number):
+    async for novel in novel_collection.find({"status": {"$ne": "draft"}}).sort("views", -1).limit(number):
         novels.append(novel_helper(novel))
     return novels
 
-# random novel
-
+# get random novel where staus != draft
 
 async def get_random_novel(number: int) -> dict:
     novels = []
-    async for novel in novel_collection.aggregate([{"$sample": {"size": number}}]):
+    async for novel in novel_collection.find({"status": {"$ne": "draft"}}).limit(number):
         novels.append(novel_helper(novel))
     return novels
 
@@ -116,3 +115,31 @@ async def get_novel_by_genre(genre: str) -> dict:
     async for novel in novel_collection.find({"genres": genre}):
         novels.append(novel_helper(novel))
     return novels
+
+# get novel by status
+
+async def get_novel_by_status(status: str) -> dict:
+    novels = []
+    async for novel in novel_collection.find({"status": status}).sort("created_at", -1):
+        novels.append(novel_helper(novel))
+    return novels
+
+# get novel last update
+
+async def get_novel_last_update(number: int) -> dict:
+    novels = []
+    async for novel in novel_collection.find({"status": {"$ne": "draft"}}).sort("updated_at", -1).limit(number):
+        novels.append(novel_helper(novel))
+    return novels
+
+# update status novel
+
+async def update_status_novel(id: str, status: str):
+    novel = await novel_collection.find_one({"_id": ObjectId(id)})
+    if novel:
+        updated_novel = await novel_collection.update_one(
+            {"_id": ObjectId(id)}, {"$set": {"status": status}}
+        )
+        if updated_novel:
+            return True
+        return False

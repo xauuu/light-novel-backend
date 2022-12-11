@@ -10,6 +10,7 @@ from server.models.novel import (
 
 from server.config.response import ResponseModel, ErrorResponseModel
 from server import oauth2
+import json
 
 router = APIRouter()
 
@@ -18,7 +19,7 @@ router = APIRouter()
 async def add_novel_data(novel: NovelSchema = Body(...), account_id: str = Depends(oauth2.require_user)):
     novel = jsonable_encoder(novel)
     novel['account_id'] = account_id
-    # new_novel = await add_novel(novel)
+    await add_novel(novel)
     return ResponseModel(novel, "Novel added successfully.")
 
 
@@ -38,7 +39,7 @@ async def get_novel_data(id):
     return ErrorResponseModel("An error occurred.", 404, "Novel doesn't exist.")
 
 
-@router.put("/{id}")
+@router.put("/update/{id}")
 async def update_novel_data(id: str, req: UpdateNovelModel = Body(...)):
     req = {k: v for k, v in req.dict().items() if v is not None}
     updated_novel = await update_novel(id, req)
@@ -67,9 +68,16 @@ async def delete_novel_data(id: str):
     )
 
 
+@router.get("/random/{number}", response_description="Top novels retrieved")
+async def get_random_novels(number: int):
+    novels = await get_random_novel(number)
+    if novels:
+        return ResponseModel(novels, "Novels data retrieved successfully")
+    return ResponseModel(novels, "Empty list returned")
+
 @router.get("/top/{number}", response_description="Top novels retrieved")
 async def get_top_novels(number: int):
-    novels = await get_random_novel(number)
+    novels = await get_top_novel(number)
     if novels:
         return ResponseModel(novels, "Novels data retrieved successfully")
     return ResponseModel(novels, "Empty list returned")
@@ -82,3 +90,22 @@ async def get_my_novels(user_id: str = Depends(oauth2.require_user)):
         return ResponseModel(novels, "Novels data retrieved successfully")
     return ResponseModel(novels, "Empty list returned")
 
+# get novel by status
+
+@router.get("/status/{status}", response_description="Novels retrieved")
+async def get_novels_by_status(status: str, admin: bool = Depends(oauth2.require_admin)):
+    if not admin:
+        return ErrorResponseModel("An error occurred.", 404, "You are not admin")
+    novels = await get_novel_by_status(status)
+    if novels:
+        return ResponseModel(novels, "Novels data retrieved successfully")
+    return ResponseModel(novels, "Empty list returned")
+
+# get novel last update
+
+@router.get("/last-update/{number}", response_description="Novels retrieved")
+async def get_novels_last_update(number: int):
+    novels = await get_novel_last_update(number)
+    if novels:
+        return ResponseModel(novels, "Novels data retrieved successfully")
+    return ResponseModel(novels, "Empty list returned")

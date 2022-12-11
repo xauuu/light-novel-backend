@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class ChapterSchema(BaseModel):
-    chapter_number: int = Field(...)
+    chapter_number: int = Field(None)
     title: str = Field(...)
     content: str = Field(...)
     novel_id: str = Field(...)

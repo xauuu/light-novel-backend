@@ -10,7 +10,7 @@ from server.config.response import ResponseModel, ErrorResponseModel
 router = APIRouter()
 
 
-@router.post("/", response_description="Chapter data added into the database")
+@router.post("/create", response_description="Chapter data added into the database")
 async def add_chapter_data(chapter: ChapterSchema = Body(...)):
     chapter = jsonable_encoder(chapter)
     new_chapter = await add_chapter(chapter)
@@ -61,3 +61,12 @@ async def delete_chapter_data(id: str):
         "An error occurred", 404, "Chapter with id {0} doesn't exist".format(
             id)
     )
+
+#get chapter by novel id
+
+@router.get("/novel/{id}", response_description="Chapter data retrieved")
+async def get_chapter_data_by_novel_id(id: str):
+    chapter = await get_chapter_by_novel_id(id)
+    if chapter:
+        return ResponseModel(chapter, "Chapter data retrieved successfully")
+    return ErrorResponseModel("An error occurred.", 404, "Chapter doesn't exist.")

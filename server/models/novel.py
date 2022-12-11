@@ -51,8 +51,8 @@ class UpdateNovel(BaseModel):
     description: Optional[str] = Field(None)
     image_url: Optional[str] = Field(None)
     banner_url: Optional[str] = Field(None)
-    genre: Optional[list] = Field(None)
-    chapter: Optional[int] = Field(None)
+    genres: Optional[list] = Field(None)
+    status: Optional[str] = Field(None)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     updated_by: Optional[str] = Field(None)
 

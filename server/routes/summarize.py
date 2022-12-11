@@ -18,7 +18,7 @@ class SummarySchema(BaseModel):
 async def summarize(request: SummarySchema = Body(...)):
     try:
         if request.method == "textrank":
-            summary = textrank_summary(request.text, request.sentences)
+            summary = textrank_summary(request.text, request.type, request.url, request.sentences)
         elif request.method == "frequency":
             summary = frequency_summary(request.text, request.type, request.url, request.sentences)
         else:
