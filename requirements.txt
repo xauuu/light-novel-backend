@@ -32,3 +32,4 @@ networkx==2.8.8
 pydantic[email]
 numpy
 regex
+bcrypt
