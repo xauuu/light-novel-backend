@@ -34,3 +34,4 @@ numpy
 regex
 bcrypt
 fastapi-jwt-auth[asymmetric]
+
