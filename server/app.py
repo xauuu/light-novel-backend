@@ -9,7 +9,7 @@ from server.config.config import settings
 
 app = FastAPI()
 
-origins = ["*","https://light-novel-frontend-25fwkoesb-xauuu.vercel.app/","http://localhost:3000", "http://localhost:8000", "localhost:3000", "localhost:8000"]
+origins = ["https://light-novel-frontend-25fwkoesb-xauuu.vercel.app/","http://localhost:3000", "http://localhost:8000", "localhost:3000", "localhost:8000"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
