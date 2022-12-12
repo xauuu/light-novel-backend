@@ -25,3 +25,4 @@ fastapi-jwt-auth==0.5.0
 anyio==3.6.2
 beautifulsoup4==4.11.1
 bson==0.5.10
+motor==2.5.1
