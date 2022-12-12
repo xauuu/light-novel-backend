@@ -33,6 +33,3 @@ passlib==1.7.4
 Pattern==3.6
 pydantic
 regex==2022.10.31
-requests
-urllib3
-email-validator
