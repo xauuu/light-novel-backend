@@ -21,15 +21,7 @@ starlette==0.13.6
 toml==0.10.2
 urllib3==1.25.10
 uvicorn==0.12.3
+fastapi-jwt-auth==0.5.0
 anyio==3.6.2
 beautifulsoup4==4.11.1
 bson==0.5.10
-fastapi-jwt-auth==0.5.0
-motor==2.5.1
-networkx==2.8.8
-nltk==3.7
-numpy==1.23.5
-passlib==1.7.4
-Pattern==3.6
-pydantic
-regex==2022.10.31
