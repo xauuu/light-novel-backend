@@ -33,3 +33,4 @@ pydantic[email]
 numpy
 regex
 bcrypt
+fastapi-jwt-auth[asymmetric]
