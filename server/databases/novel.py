@@ -1,6 +1,8 @@
 from bson.objectid import ObjectId
 from server import connect
 from server.databases.chapter import *
+from datetime import datetime
+from statistics import mean
 
 novel_collection = connect.novel_collection
 
@@ -16,7 +18,7 @@ def novel_helper(novel) -> dict:
         "chapters": novel["chapter"],
         "views": novel["views"],
         "tags": novel["tags"],
-        "rating": novel["rating"],
+        "rating": round(mean([x["rating"] for x in novel["ratings"]]), 1) if "ratings" in novel else 0,
         "year": novel["year"],
         "status": novel["status"],
         "created_at": novel["created_at"],
@@ -50,6 +52,7 @@ async def add_novel(novel_data: dict) -> dict:
 async def retrieve_novel(id: str) -> dict:
     novel = await novel_collection.find_one({"_id": ObjectId(id)})
     if novel:
+        await update_novel(id, {"views": novel["views"] + 1})
         novel = novel_helper(novel)
         novel["chapter"] = await get_chapter_by_novel_id(id)
         return novel
@@ -68,6 +71,7 @@ async def update_novel(id: str, data: dict):
     if len(data) < 1:
         return False
     novel = await novel_collection.find_one({"_id": ObjectId(id)})
+    data["updated_at"] = datetime.now()
     if novel:
         updated_novel = await novel_collection.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
@@ -104,7 +108,7 @@ async def get_random_novel(number: int) -> dict:
 
 async def get_my_novel(id: str) -> dict:
     novels = []
-    async for novel in novel_collection.find({"account_id": id}):
+    async for novel in novel_collection.find({"account_id": id}).sort("updated_at", -1):
         novels.append(novel_helper(novel))
     return novels
 
@@ -143,3 +147,26 @@ async def update_status_novel(id: str, status: str):
         if updated_novel:
             return True
         return False
+
+# push ratings to list in novel 
+
+async def add_rating_novel(id: str, rating: float, user_id: str):
+    novel = await novel_collection.find_one({"_id": ObjectId(id)})
+    if novel:
+        if "ratings" in novel:
+            ratings = novel["ratings"]
+            if user_id in [x["user_id"] for x in ratings]:
+                for x in ratings:
+                    if x["user_id"] == user_id:
+                        x["rating"] = rating
+            else:
+                ratings.append({"user_id": user_id, "rating": rating})
+            await novel_collection.update_one(
+                {"_id": ObjectId(id)}, {"$set": {"ratings": ratings}}
+            )
+        else:
+            await novel_collection.update_one(
+                {"_id": ObjectId(id)}, {"$set": {"ratings": [{"user_id": user_id, "rating": rating}]}}
+            )
+        return True
+    return False

@@ -10,8 +10,8 @@ class ChapterSchema(BaseModel):
     novel_id: str = Field(...)
     views: int = Field(default=0)
     source_file_url: str = Field(None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
     created_by: Optional[str] = Field(None)
     updated_by: Optional[str] = Field(None)
 
@@ -37,7 +37,7 @@ class UpdateChapter(BaseModel):
     content: Optional[str] = Field(None)
     views: Optional[int] = Field(None)
     source_file_url: Optional[str] = Field(None)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.now)
     updated_by: Optional[str] = Field(None)
 
     class Config:

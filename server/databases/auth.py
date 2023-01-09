@@ -18,6 +18,8 @@ def userResponseEntity(user) -> dict:
         "name": user["name"],
         "email": user["email"],
         "role": user["role"],
+        "gender": user["gender"] if "gender" in user else "secrecy",
+        "about": user["about"] if "about" in user else "",
         "photo": user["photo"],
         "created_at": user["created_at"],
         "updated_at": user["updated_at"]

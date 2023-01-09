@@ -7,7 +7,7 @@ from server.oauth2 import AuthJWT
 from server.config.config import settings
 from server.connect import user_collection
 from server import utils
-from server.models.user import UserBaseSchema, CreateUserSchema, LoginUserSchema
+from server.models.user import UserBaseSchema, CreateUserSchema, LoginUserSchema, UserResponseSchema
 from server.config.response import ResponseModel, ErrorResponseModel
 from server.databases.auth import userResponseEntity, embeddedUserResponse, userEntity
 
@@ -127,4 +127,25 @@ async def logout(response: Response, Authorize: AuthJWT = Depends(), user_id: st
 async def get_me(user_id: str = Depends(oauth2.require_user)):
     user = userResponseEntity(await user_collection.find_one(
         {'_id': ObjectId(str(user_id))}))
-    return {"status": "success", "user": user}
+    return ResponseModel(user, 'User retrieved successfully')
+
+#update user
+@router.post('/update')
+async def update_user(payload: UserResponseSchema, user_id: str = Depends(oauth2.require_user)):
+    user = await user_collection.find_one({'_id': ObjectId(str(user_id))})
+    if not user:
+        return ErrorResponseModel('User not found', 404, 'User not found')
+    update_result = await user_collection.update_one({'_id': ObjectId(str(user_id))}, {
+        '$set': payload.dict(exclude_unset=True)})
+    if update_result.modified_count == 1:
+        return ResponseModel('User updated successfully', 'User updated successfully')
+    return ErrorResponseModel('An error occurred', 500, 'An error occurred')
+
+#get list user 
+@router.get('/list')
+async def get_list_user():
+    users = []
+    async for user in user_collection.find({"role": "user"}):
+        users.append(userResponseEntity(user))
+    return ResponseModel(users, 'List user')
+

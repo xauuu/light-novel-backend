@@ -109,3 +109,13 @@ async def get_novels_last_update(number: int):
     if novels:
         return ResponseModel(novels, "Novels data retrieved successfully")
     return ResponseModel(novels, "Empty list returned")
+
+#  rating novel
+
+@router.post("/rating/{id}", response_description="Novel data added into the database")
+async def add_novel_rating(id: str, rating: float = Body(...), user_id: str = Depends(oauth2.require_user)):
+    rating = await add_rating_novel(id, rating, user_id)
+    if rating:
+        return ResponseModel(200, "Rating added successfully.")
+    return ResponseModel(400, "Empty list returned")
+

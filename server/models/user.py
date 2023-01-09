@@ -6,6 +6,9 @@ class UserBaseSchema(BaseModel):
     name: str = Field(...)
     email: str = Field(...)
     photo: str = Field(None)
+    banner: str = Field(None)
+    gender: str = Field(None)
+    about: str = Field(None)
     role: str = Field(None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -20,7 +23,8 @@ class CreateUserSchema(UserBaseSchema):
     passwordConfirm: str = Field(...)
     verified: bool = False
 
-
+class UserResponseSchema(UserBaseSchema):
+    id: str = Field(...)
 class LoginUserSchema(BaseModel):
     email: EmailStr
     password: constr(min_length=6)
