@@ -119,3 +119,11 @@ async def add_novel_rating(id: str, rating: float = Body(...), user_id: str = De
         return ResponseModel(200, "Rating added successfully.")
     return ResponseModel(400, "Empty list returned")
 
+#search novel
+
+@router.get("/search/{keyword}", response_description="Novels retrieved")
+async def search_novel(keyword: str):
+    novels = await get_novel_by_search(keyword)
+    if novels:
+        return ResponseModel(novels, "Novels data retrieved successfully")
+    return ResponseModel(novels, "Empty list returned")

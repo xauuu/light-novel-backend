@@ -170,3 +170,12 @@ async def add_rating_novel(id: str, rating: float, user_id: str):
             )
         return True
     return False
+
+# get novel by search
+
+async def get_novel_by_search(search: str) -> dict:
+    novels = []
+    data = novel_collection.aggregate([{"$search": {"index": "text", "text": {"query": search, "path": "title"}}}])
+    async for novel in data:
+        novels.append(novel_helper(novel))
+    return novels

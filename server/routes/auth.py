@@ -137,8 +137,9 @@ async def update_user(payload: UserResponseSchema, user_id: str = Depends(oauth2
         return ErrorResponseModel('User not found', 404, 'User not found')
     update_result = await user_collection.update_one({'_id': ObjectId(str(user_id))}, {
         '$set': payload.dict(exclude_unset=True)})
-    if update_result.modified_count == 1:
-        return ResponseModel('User updated successfully', 'User updated successfully')
+    if update_result:
+        user = userResponseEntity(await user_collection.find_one({'_id': ObjectId(str(user_id))}))
+        return ResponseModel(user, 'User updated successfully')
     return ErrorResponseModel('An error occurred', 500, 'An error occurred')
 
 #get list user 

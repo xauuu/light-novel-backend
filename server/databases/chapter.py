@@ -1,7 +1,9 @@
 from bson.objectid import ObjectId
 from server import connect
 from server.summarize.frequency import summarize
+from server.summarize.vi import summarize as vi_summarize
 from datetime import datetime
+from langdetect import detect
 import pyttsx3
 engine = pyttsx3.init()
 engine.setProperty('rate', 150)
@@ -18,6 +20,7 @@ def chapter_helper(chapter) -> dict:
         "description": chapter["description"] if "description" in chapter else "",
         "content": chapter["content"],
         "summary": chapter["summary"] if "summary" in chapter else "",
+        "lang": chapter["lang"] if "lang" in chapter else "en-AU",
         "novel_id": chapter["novel_id"],
         "views": chapter["views"],
         "source_file_url": chapter["source_file_url"],
@@ -40,10 +43,12 @@ async def retrieve_chapters():
 async def add_chapter(chapter_data: dict) -> dict:
     chapter_number = await chapter_collection.count_documents({"novel_id": chapter_data["novel_id"]}) + 1
     chapter_data["chapter_number"] = chapter_number
-    chapter_data["summary"] = summarize(chapter_data["content"], 'text', '', 5)
-    # engine.save_to_file(chapter_data["content"], f"server/audio/{chapter_data['novel_id']}-{chapter_number}.mp3")
-    # engine.runAndWait()
-    # chapter_data["soure_file_url"] = f"/audio/{chapter_data['novel_id']}-{chapter_number}.mp3"
+    if detect(chapter_data["content"] == "vi"):
+        chapter_data["summary"] = vi_summarize(chapter_data["content"])
+        chapter_data["lang"] = "vi-VN"
+    else:
+        chapter_data["summary"] = summarize(chapter_data["content"], 'text', '', 5)
+        chapter_data["lang"] = "en-AU"
     await novel_collection.update_one({"_id": ObjectId(chapter_data["novel_id"])}, {"$set": {"chapter": chapter_number, "updated_at": datetime.now()}})
     chapter = await chapter_collection.insert_one(chapter_data)
     new_chapter = await chapter_collection.find_one({"_id": chapter.inserted_id})
@@ -81,11 +86,13 @@ async def update_chapter(id: str, data: dict):
         return False
     chapter = await chapter_collection.find_one({"_id": ObjectId(id)})
     if "content" in data:
-        data["summary"] = summarize(data["content"], 'text', '', 5)
+        if detect(data["content"]) == "vi":
+            data["summary"] = vi_summarize(data["content"])
+            chapter_data["lang"] = "vi-VN"
+        else:
+            data["summary"] = summarize(data["content"], 'text', '', 5)
+            chapter_data["lang"] = "en-AU"
     data["updated_at"] = datetime.now()
-    # engine.save_to_file(data["content"], f"server/audio/{chapter['novel_id']}-{chapter['chapter_number']}.mp3")
-    # engine.runAndWait()
-    # data["source_file_url"] = f"/audio/{chapter['novel_id']}-{chapter['chapter_number']}.mp3"
     if chapter:
         updated_chapter = await chapter_collection.update_one(
             {"_id": ObjectId(id)}, {"$set": data}
